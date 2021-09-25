@@ -12,12 +12,13 @@ yourTimer = None
 
 POOL_TIME = 5
 
+
 def create_app():
     app = Flask(__name__)
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///app.db'
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
 
     db = SQLAlchemy(app)
-    migrate = Migrate(app, db)
+    Migrate(app, db)
 
     class Station(db.Model):
         id = db.Column(db.Integer, primary_key=True)
@@ -48,10 +49,18 @@ def create_app():
         for station in tfl_stations:
             obj = Station(name=station, source="tfl")
             db.session.add(obj)
-        print("updated tfl stations")        
+        print("updated tfl stations")
 
-    updaters = {"nr_stations_update": {"func": update_nr_stations, "limit": timedelta(days=1)},
-    "update_tfl_stations": {"func": update_tfl_stations, "limit": timedelta(days=1)}}
+    updaters = {
+        "nr_stations_update": {
+            "func": update_nr_stations,
+            "limit": timedelta(days=1),
+        },
+        "update_tfl_stations": {
+            "func": update_tfl_stations,
+            "limit": timedelta(days=1),
+        },
+    }
 
     def doStuff():
         global yourTimer
@@ -74,20 +83,21 @@ def create_app():
                     update = Updates(id=key, last_updated=datetime.now())
                     db.session.add(update)
                     db.session.commit()
-            
 
         yourTimer = threading.Timer(POOL_TIME, doStuff, ())
-        yourTimer.start()   
+        yourTimer.start()
 
     if "db" not in sys.argv:
         doStuff()
     atexit.register(interrupt)
     return {"app": app, "Updates": Updates, "Station": Station}
 
+
 data = create_app()
 app = data["app"]
 for k in data:
     locals()[k] = data[k]
+
 
 @app.route("/")
 def hello_world():

@@ -2,3 +2,4 @@ defusedxml
 pip-tools
 requests
 Flask-Migrate
+pre-commit

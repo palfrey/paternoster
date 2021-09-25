@@ -6,8 +6,12 @@
 #
 alembic==1.7.3
     # via flask-migrate
+backports.entry-points-selectable==1.1.0
+    # via virtualenv
 certifi==2021.5.30
     # via requests
+cfgv==3.3.1
+    # via pre-commit
 charset-normalizer==2.0.6
     # via requests
 click==8.0.1
@@ -16,6 +20,10 @@ click==8.0.1
     #   pip-tools
 defusedxml==0.7.1
     # via -r requirements.in
+distlib==0.3.3
+    # via virtualenv
+filelock==3.0.12
+    # via virtualenv
 flask==2.0.1
     # via
     #   flask-migrate
@@ -26,6 +34,8 @@ flask-sqlalchemy==2.5.1
     # via flask-migrate
 greenlet==1.1.1
     # via sqlalchemy
+identify==2.2.15
+    # via pre-commit
 idna==3.2
     # via requests
 itsdangerous==2.0.1
@@ -38,20 +48,34 @@ markupsafe==2.0.1
     # via
     #   jinja2
     #   mako
+nodeenv==1.6.0
+    # via pre-commit
 pep517==0.11.0
     # via pip-tools
 pip-tools==6.3.0
     # via -r requirements.in
+platformdirs==2.4.0
+    # via virtualenv
+pre-commit==2.15.0
+    # via -r requirements.in
+pyyaml==5.4.1
+    # via pre-commit
 requests==2.26.0
     # via -r requirements.in
+six==1.16.0
+    # via virtualenv
 sqlalchemy==1.4.25
     # via
     #   alembic
     #   flask-sqlalchemy
+toml==0.10.2
+    # via pre-commit
 tomli==1.2.1
     # via pep517
 urllib3==1.26.7
     # via requests
+virtualenv==20.8.1
+    # via pre-commit
 werkzeug==2.0.1
     # via flask
 wheel==0.37.0
