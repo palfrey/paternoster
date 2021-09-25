@@ -1,6 +1,6 @@
 from typing import Dict, List
 import requests
-from hashdict import hashdict
+from .hashdict import hashdict
 from defusedxml.ElementTree import fromstring
 
 def nr_non_working_lifts() -> List[Dict]:
@@ -73,21 +73,3 @@ def trackernet_issues():
       continue
     station_element = stationstatus.find("{http://webservices.lul.co.uk/}Station")
     yield {"station": station_element.get("Name"), "status": status, "location": None}
-
-
-# for x in nr_non_working_lifts():
-#   print(x)
-
-# print(nr_stations())
-
-print("api")
-for x in set(tflapi_lift_issues()):
-  print(x)
-
-print("\ndisruptions\n")
-for x in set(tflapi_lift_disruptions()):
-  print(x)
-
-#print(sorted(tfl_stations()))
-
-# print(list(trackernet_issues()))

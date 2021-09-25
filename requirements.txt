@@ -4,26 +4,56 @@
 #
 #    pip-compile
 #
+alembic==1.7.3
+    # via flask-migrate
 certifi==2021.5.30
     # via requests
 charset-normalizer==2.0.6
     # via requests
 click==8.0.1
-    # via pip-tools
+    # via
+    #   flask
+    #   pip-tools
 defusedxml==0.7.1
     # via -r requirements.in
+flask==2.0.1
+    # via
+    #   flask-migrate
+    #   flask-sqlalchemy
+flask-migrate==3.1.0
+    # via -r requirements.in
+flask-sqlalchemy==2.5.1
+    # via flask-migrate
+greenlet==1.1.1
+    # via sqlalchemy
 idna==3.2
     # via requests
+itsdangerous==2.0.1
+    # via flask
+jinja2==3.0.1
+    # via flask
+mako==1.1.5
+    # via alembic
+markupsafe==2.0.1
+    # via
+    #   jinja2
+    #   mako
 pep517==0.11.0
     # via pip-tools
 pip-tools==6.3.0
     # via -r requirements.in
 requests==2.26.0
     # via -r requirements.in
+sqlalchemy==1.4.25
+    # via
+    #   alembic
+    #   flask-sqlalchemy
 tomli==1.2.1
     # via pep517
 urllib3==1.26.7
     # via requests
+werkzeug==2.0.1
+    # via flask
 wheel==0.37.0
     # via pip-tools
 
