@@ -16,7 +16,11 @@ POOL_TIME = 5
 
 def create_app():
     app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///app.db")
+    db_url = os.getenv("DATABASE_URL", "sqlite:///app.db")
+    db_url = db_url.replace(  # because of https://stackoverflow.com/questions/62688256/sqlalchemy-exc-nosuchmoduleerror-cant-load-plugin-sqlalchemy-dialectspostgre
+        "postgres://", "postgresql://"
+    )
+    app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db = SQLAlchemy(app)
