@@ -1,11 +1,13 @@
 from datetime import datetime, timedelta
+import os
 import threading
-from flask import Flask
+from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import atexit
 import sys
 from . import apis
+from sqlalchemy.orm import joinedload
 
 dataLock = threading.Lock()
 yourTimer = None
@@ -25,12 +27,21 @@ def create_app():
         name = db.Column(db.String(128))
         source = db.Column(db.String(128))
 
+    class Lift(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        location = db.Column(db.String(128))
+        message = db.Column(db.Text)
+        station_id = db.Column(db.Integer, db.ForeignKey("station.id"), nullable=False)
+        station = db.relationship("Station", backref=db.backref("lifts", lazy=True))
+        source = db.Column(db.String(128))
+
     class Updates(db.Model):
         id = db.Column(db.String(128), primary_key=True)
         last_updated = db.Column(db.DateTime, nullable=True)
 
     def interrupt():
         global yourTimer
+        print("interrupt")
         if yourTimer is not None:
             yourTimer.cancel()
             yourTimer = None
@@ -51,6 +62,34 @@ def create_app():
             db.session.add(obj)
         print("updated tfl stations")
 
+    def closest_station(station_source: str, name: str):
+        stations = Station.query.filter_by(source=station_source).filter(Station.name.startswith(name)).all()
+        if len(stations) == 1:
+            return stations[0]
+        elif len(stations) == 0:
+            raise Exception((station_source, name))
+        else:
+            for poss in stations:
+                if poss.name == name:
+                    return poss
+            raise Exception([st.__dict__ for st in stations], name)
+
+    def nr_non_working_lifts():
+        lifts = apis.nr_non_working_lifts()
+        Lift.query.filter_by(source="nr").delete()
+        for lift in lifts:
+            station = closest_station("nr", lift["station"])
+            obj = Lift(message=lift["status"], location=lift["location"], source="nr", station_id=station.id)
+            db.session.add(obj)
+
+    def tflapi_lift_issues():
+        lifts = apis.tflapi_lift_issues()
+        Lift.query.filter_by(source="tflapi").delete()
+        for lift in lifts:
+            station = closest_station("tfl", lift["station"])
+            obj = Lift(message=lift["status"], location=lift["location"], source="tflapi", station_id=station.id)
+            db.session.add(obj)
+
     updaters = {
         "nr_stations_update": {
             "func": update_nr_stations,
@@ -60,6 +99,8 @@ def create_app():
             "func": update_tfl_stations,
             "limit": timedelta(days=1),
         },
+        "nr_non_working_lifts": {"func": nr_non_working_lifts, "limit": timedelta(minutes=5)},
+        "tflapi_lift_issues": {"func": tflapi_lift_issues, "limit": timedelta(minutes=5)},
     }
 
     def doStuff():
@@ -84,21 +125,21 @@ def create_app():
                     db.session.add(update)
                     db.session.commit()
 
-        yourTimer = threading.Timer(POOL_TIME, doStuff, ())
-        yourTimer.start()
+        if os.environ.get("FLASK_RUN_FROM_CLI") != "true":
+            yourTimer = threading.Timer(POOL_TIME, doStuff, ())
+            yourTimer.start()
 
     if "db" not in sys.argv:
         doStuff()
     atexit.register(interrupt)
-    return {"app": app, "Updates": Updates, "Station": Station}
+    return {"app": app, "Updates": Updates, "Station": Station, "Lift": Lift}
 
 
 data = create_app()
 app = data["app"]
-for k in data:
-    locals()[k] = data[k]
+Lift = data["Lift"]
 
 
 @app.route("/")
-def hello_world():
-    return "<p>Helo, Worl!</p>"
+def index():
+    return render_template("index.html", lifts=Lift.query.options(joinedload("station")).limit(10).all())

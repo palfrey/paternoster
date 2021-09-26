@@ -1,10 +1,14 @@
-from typing import Dict, List
+from typing import Dict, Generator, List
 import requests
 from .hashdict import hashdict
 from defusedxml.ElementTree import fromstring
 
 
-def nr_non_working_lifts() -> List[Dict]:
+def reduce_name(name: str) -> str:
+    return name.replace(" Station", "").replace(" Rail", "").replace(" Underground", "")
+
+
+def nr_non_working_lifts() -> Generator[Dict, None, None]:
     ALL_STATIONS = """query {
 portfolio(where: {status: {status: {_neq: "Available"}}, type: {_eq: "Lift"}}) {
    status {
@@ -29,13 +33,13 @@ portfolio(where: {status: {status: {_neq: "Available"}}, type: {_eq: "Lift"}}) {
         yield {
             "status": lift["status"]["status"],
             "location": lift["location"],
-            "station": lift["station"],
+            "station": reduce_name(lift["station"]),
         }
 
 
 def nr_stations() -> List[str]:
     ALL_STATIONS = """query {
- status(distinct_on: [station]) {
+ portfolio(distinct_on: [station]) {
    station
  }
 }"""
@@ -44,7 +48,11 @@ def nr_stations() -> List[str]:
         json={"query": ALL_STATIONS},
     )
     res.raise_for_status()
-    return [station["station"] for station in res.json()["data"]["status"] if station["station"] not in ["#N/A", None]]
+    return [
+        reduce_name(station["station"])
+        for station in res.json()["data"]["portfolio"]
+        if station["station"] not in ["#N/A", None]
+    ]
 
 
 def tflapi_lift_issues():
@@ -56,7 +64,7 @@ def tflapi_lift_issues():
                 {
                     "status": issue["description"].strip(),
                     "location": None,
-                    "station": issue["commonName"].replace(" Station", ""),
+                    "station": reduce_name(issue["commonName"]),
                 }
             )
 
@@ -69,7 +77,7 @@ def tflapi_lift_disruptions():
             {
                 "status": issue["message"].strip(),
                 "location": None,
-                "station": issue["stopPointName"].replace(" Station", ""),
+                "station": reduce_name(issue["stopPointName"]),
             }
         )
 
@@ -82,7 +90,7 @@ def tfl_stations():
         resp = requests.get(f"https://api.tfl.gov.uk/StopPoint/Mode/tube%2Cdlr%2Coverground%2Ctflrail?page={page}")
         resp.raise_for_status()
         data = resp.json()
-        stations += [stopPoint["commonName"].replace(" Station", "") for stopPoint in data["stopPoints"]]
+        stations += [reduce_name(stopPoint["commonName"]) for stopPoint in data["stopPoints"]]
         if len(stations) == data["total"]:
             break
         page += 1
@@ -101,7 +109,7 @@ def trackernet_issues():
             continue
         station_element = stationstatus.find("{http://webservices.lul.co.uk/}Station")
         yield {
-            "station": station_element.get("Name"),
+            "station": reduce_name(station_element.get("Name")),
             "status": status,
             "location": None,
         }
