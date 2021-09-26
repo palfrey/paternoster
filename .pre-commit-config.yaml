@@ -13,3 +13,8 @@ repos:
   hooks:
   - id: yamlfmt
     args: [--mapping, '2', --sequence, '2', --offset, '0', --width, '150']
+- repo: https://github.com/pre-commit/mirrors-prettier
+  rev: v2.4.1
+  hooks:
+  - id: prettier
+    types_or: [html, markdown]

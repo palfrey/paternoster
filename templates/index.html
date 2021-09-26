@@ -1,12 +1,12 @@
 <html>
-    <head>
-        <title>Paternoster</title>
-    </head>
-    <body>
-        <ul>
-        {% for lift in lifts %}
-        <li>{{ lift.station.name }} - {{ lift.location}} - {{lift.message}}</li>        
-        {% endfor %}
-        </ul>
-    </body>
+  <head>
+    <title>Paternoster</title>
+  </head>
+  <body>
+    <ul>
+      {% for lift in lifts %}
+      <li>{{ lift.station.name }} - {{ lift.location}} - {{lift.message}}</li>
+      {% endfor %}
+    </ul>
+  </body>
 </html>
