@@ -157,7 +157,7 @@ def index():
 def getstations():
     term = request.args.get("term")
     stations = sorted(
-        set([station.name for station in Station.query.filter(Station.name.contains(term)).limit(10).all()])
+        set([station.name for station in Station.query.filter(Station.name.ilike(f"%{term}%")).limit(10).all()])
     )
     return jsonify([{"id": station, "label": station, "value": station} for station in stations])
 
