@@ -41,7 +41,6 @@ def create_app():
 
     def interrupt():
         global yourTimer
-        print("interrupt")
         if yourTimer is not None:
             yourTimer.cancel()
             yourTimer = None
