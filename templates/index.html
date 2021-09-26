@@ -24,15 +24,7 @@
         <label for="station">Select station </label>
         <input id="station" />
       </div>
-      <h3>First {{ lifts |length }} non-working lifts</h3>
-      <ul>
-        {% for lift in lifts %}
-        <li>
-          {{ lift.station.name }} - {{ lift.location}}{% if lift.message !=
-          "Unknown" %} - {{lift.message}} {% endif %}
-        </li>
-        {% endfor %}
-      </ul>
+      <div id="lifts" />
     </div>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.min.js"
@@ -64,6 +56,40 @@
               cache[term] = data;
               response(data);
             });
+          },
+          select: function (event, ui) {
+            const station = ui.item.value;
+            $.getJSON(
+              "getlifts",
+              { station: station },
+              function (data, status, xhr) {
+                const liftsElement = document.getElementById("lifts");
+                while (true) {
+                  const child = liftsElement.firstChild;
+                  if (child === null) {
+                    break;
+                  }
+                  liftsElement.removeChild(child);
+                }
+                if (data.length === 0) {
+                  liftsElement.innerText = "No broken lifts for " + station;
+                } else {
+                  const message = document.createElement("span");
+                  message.innerText = "Issues with lifts at";
+                  liftsElement.appendChild(message);
+                  const liftList = document.createElement("ul");
+                  for (const lift of data) {
+                    const item = document.createElement("li");
+                    item.innerText = lift["location"];
+                    if (lift["message"] != "Unknown") {
+                      item.innerText += " - " + lift["message"];
+                    }
+                    liftList.appendChild(item);
+                  }
+                  liftsElement.appendChild(liftList);
+                }
+              }
+            );
           },
         });
       });

@@ -143,7 +143,7 @@ Station = data["Station"]
 
 @app.route("/")
 def index():
-    return render_template("index.html", lifts=Lift.query.options(joinedload("station")).limit(10).all())
+    return render_template("index.html")
 
 
 @app.route("/getstations")
@@ -151,3 +151,11 @@ def getstations():
     term = request.args.get("term")
     stations = Station.query.filter(Station.name.contains(term)).limit(10).all()
     return jsonify([{"id": station.name, "label": station.name, "value": station.name} for station in stations])
+
+
+@app.route("/getlifts")
+def getlifts():
+    station = request.args.get("station")
+    stations = [st.id for st in Station.query.filter(Station.name.startswith(station)).all()]
+    lifts = Lift.query.filter(Lift.station_id.in_(stations))
+    return jsonify([{"location": lift.location, "message": lift.message} for lift in lifts])
