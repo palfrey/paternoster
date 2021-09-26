@@ -4,3 +4,4 @@ requests
 Flask-Migrate
 pre-commit
 gunicorn
+psycopg2-binary
