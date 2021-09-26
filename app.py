@@ -142,4 +142,4 @@ Lift = data["Lift"]
 
 @app.route("/")
 def index():
-    return render_template("index.html", lifts=Lift.query.options(joinedload("station")).limit(10).all())
+    return render_template("index.html", lifts=Lift.query.options(joinedload("station")).limit(30).all())
