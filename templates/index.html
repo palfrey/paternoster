@@ -9,11 +9,21 @@
       integrity="sha384-F3w7mX95PdgyTmZZMECAngseQB83DfGTowi0iMjiWaeVhAn4FJkqJByhZMI3AhiU"
       crossorigin="anonymous"
     />
+    <link
+      rel="stylesheet"
+      href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"
+      integrity="sha384-xewr6kSkq3dBbEtB6Z/3oFZmknWn7nHqhLVLrYgzEFRbU/DHSxW7K3B44yWUN60D"
+      crossorigin="anonymous"
+    />
     <title>Paternoster</title>
   </head>
   <body>
     <div class="col-lg-8 p-3">
       <h2>Paternoster</h2>
+      <div class="ui-widget">
+        <label for="station">Select station </label>
+        <input id="station" />
+      </div>
       <h3>First {{ lifts |length }} non-working lifts</h3>
       <ul>
         {% for lift in lifts %}
@@ -29,5 +39,34 @@
       integrity="sha384-skAcpIdS7UcVUC05LJ9Dxay8AXcDYfBJqt1CJ85S/CFujBsIzCIv+l9liuYLaMQ/"
       crossorigin="anonymous"
     ></script>
+    <script
+      src="https://code.jquery.com/jquery-1.12.4.min.js"
+      integrity="sha256-ZosEbRLbNQzLpnKIkEdrPv7lOy9C27hHQ+Xp8a4MxAQ="
+      crossorigin="anonymous"
+    ></script>
+    <script
+      src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"
+      integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
+      crossorigin="anonymous"
+    ></script>
+    <script>
+      $(function () {
+        var cache = {};
+        $("#station").autocomplete({
+          minLength: 2,
+          source: function (request, response) {
+            var term = request.term;
+            if (term in cache) {
+              response(cache[term]);
+              return;
+            }
+            $.getJSON("getstations", request, function (data, status, xhr) {
+              cache[term] = data;
+              response(data);
+            });
+          },
+        });
+      });
+    </script>
   </body>
 </html>

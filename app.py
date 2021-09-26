@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 import os
 import threading
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 import atexit
@@ -138,8 +138,16 @@ def create_app():
 data = create_app()
 app = data["app"]
 Lift = data["Lift"]
+Station = data["Station"]
 
 
 @app.route("/")
 def index():
-    return render_template("index.html", lifts=Lift.query.options(joinedload("station")).limit(30).all())
+    return render_template("index.html", lifts=Lift.query.options(joinedload("station")).limit(10).all())
+
+
+@app.route("/getstations")
+def getstations():
+    term = request.args.get("term")
+    stations = Station.query.filter(Station.name.contains(term)).limit(10).all()
+    return jsonify([{"id": station.name, "label": station.name, "value": station.name} for station in stations])
