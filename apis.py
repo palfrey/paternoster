@@ -1,6 +1,6 @@
 from typing import Dict, Generator, List
 import requests
-from .hashdict import hashdict
+from hashdict import hashdict
 from defusedxml.ElementTree import fromstring
 
 

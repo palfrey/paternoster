@@ -3,3 +3,4 @@ pip-tools
 requests
 Flask-Migrate
 pre-commit
+gunicorn

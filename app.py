@@ -3,11 +3,10 @@ import os
 import threading
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+from flask_migrate import Migrate, upgrade
 import atexit
 import sys
-from . import apis
-from sqlalchemy.orm import joinedload
+import apis
 
 dataLock = threading.Lock()
 yourTimer = None
@@ -17,11 +16,14 @@ POOL_TIME = 5
 
 def create_app():
     app = Flask(__name__)
-    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///app.db"
+    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL", "sqlite:///app.db")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     db = SQLAlchemy(app)
     Migrate(app, db)
+
+    with app.app_context():
+        upgrade()
 
     class Station(db.Model):
         id = db.Column(db.Integer, primary_key=True)
