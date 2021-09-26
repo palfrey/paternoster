@@ -149,8 +149,10 @@ def index():
 @app.route("/getstations")
 def getstations():
     term = request.args.get("term")
-    stations = Station.query.filter(Station.name.contains(term)).limit(10).all()
-    return jsonify([{"id": station.name, "label": station.name, "value": station.name} for station in stations])
+    stations = sorted(
+        set([station.name for station in Station.query.filter(Station.name.contains(term)).limit(10).all()])
+    )
+    return jsonify([{"id": station, "label": station, "value": station} for station in stations])
 
 
 @app.route("/getlifts")
