@@ -24,7 +24,8 @@
         <label for="station">Select station </label>
         <input id="station" />
       </div>
-      <div id="lifts" />
+      <div id="lifts"></div>
+      <button onClick="javascript:refreshLifts()">Refresh lifts list</button>
     </div>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.1/dist/js/bootstrap.min.js"
@@ -42,6 +43,44 @@
       crossorigin="anonymous"
     ></script>
     <script>
+      function refreshLifts(station) {
+        if (station === undefined) {
+          station = document.getElementById("station").value;
+        }
+        console.log(station);
+        $.getJSON(
+          "getlifts",
+          { station: station },
+          function (data, status, xhr) {
+            const liftsElement = document.getElementById("lifts");
+            while (true) {
+              const child = liftsElement.firstChild;
+              if (child === null) {
+                break;
+              }
+              console.log("removing", child);
+              liftsElement.removeChild(child);
+            }
+            if (data.length === 0) {
+              liftsElement.innerText = "No broken lifts for " + station;
+            } else {
+              const message = document.createElement("span");
+              message.innerText = "Issues with lifts at";
+              liftsElement.appendChild(message);
+              const liftList = document.createElement("ul");
+              for (const lift of data) {
+                const item = document.createElement("li");
+                item.innerText = lift["location"];
+                if (lift["message"] != "Unknown") {
+                  item.innerText += " - " + lift["message"];
+                }
+                liftList.appendChild(item);
+              }
+              liftsElement.appendChild(liftList);
+            }
+          }
+        );
+      }
       $(function () {
         var cache = {};
         $("#station").autocomplete({
@@ -58,38 +97,7 @@
             });
           },
           select: function (event, ui) {
-            const station = ui.item.value;
-            $.getJSON(
-              "getlifts",
-              { station: station },
-              function (data, status, xhr) {
-                const liftsElement = document.getElementById("lifts");
-                while (true) {
-                  const child = liftsElement.firstChild;
-                  if (child === null) {
-                    break;
-                  }
-                  liftsElement.removeChild(child);
-                }
-                if (data.length === 0) {
-                  liftsElement.innerText = "No broken lifts for " + station;
-                } else {
-                  const message = document.createElement("span");
-                  message.innerText = "Issues with lifts at";
-                  liftsElement.appendChild(message);
-                  const liftList = document.createElement("ul");
-                  for (const lift of data) {
-                    const item = document.createElement("li");
-                    item.innerText = lift["location"];
-                    if (lift["message"] != "Unknown") {
-                      item.innerText += " - " + lift["message"];
-                    }
-                    liftList.appendChild(item);
-                  }
-                  liftsElement.appendChild(liftList);
-                }
-              }
-            );
+            refreshLifts(ui.item.value);
           },
         });
       });
