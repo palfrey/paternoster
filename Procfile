@@ -1,1 +1,1 @@
-web: gunicorn app:app --log-file - --error-logfile - --capture-output --log-level debug
+web: uwsgi --socket 0.0.0.0:5000 --protocol=http -w app:app

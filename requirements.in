@@ -3,5 +3,5 @@ pip-tools
 requests
 Flask-Migrate
 pre-commit
-gunicorn
+uwsgi
 psycopg2-binary

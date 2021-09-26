@@ -138,6 +138,7 @@ def create_app():
 
 
 data = create_app()
+print("booted")
 app = data["app"]
 Lift = data["Lift"]
 Station = data["Station"]

@@ -34,8 +34,6 @@ flask-sqlalchemy==2.5.1
     # via flask-migrate
 greenlet==1.1.1
     # via sqlalchemy
-gunicorn==20.1.0
-    # via -r requirements.in
 identify==2.2.15
     # via pre-commit
 idna==3.2
@@ -78,6 +76,8 @@ tomli==1.2.1
     # via pep517
 urllib3==1.26.7
     # via requests
+uwsgi==2.0.19.1
+    # via -r requirements.in
 virtualenv==20.8.1
     # via pre-commit
 werkzeug==2.0.1
