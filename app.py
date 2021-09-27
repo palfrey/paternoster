@@ -22,6 +22,7 @@ def create_app():
     )
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    app.config["TEMPLATES_AUTO_RELOAD"] = True
 
     db = SQLAlchemy(app)
     Migrate(app, db)
