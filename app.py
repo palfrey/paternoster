@@ -7,6 +7,7 @@ from flask_migrate import Migrate, upgrade
 import atexit
 import sys
 import apis
+from hashdict import hashdict
 
 dataLock = threading.Lock()
 yourTimer = None
@@ -177,4 +178,4 @@ def getlifts():
         stations = exact_matches
     # but will take non-exact but "begins with"
     lifts = Lift.query.filter(Lift.station_id.in_([st.id for st in stations]))
-    return jsonify([{"location": lift.location, "message": lift.message} for lift in lifts])
+    return jsonify(list(set([hashdict({"location": lift.location, "message": lift.message}) for lift in lifts])))
