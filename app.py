@@ -166,6 +166,15 @@ def getstations():
 @app.route("/getlifts")
 def getlifts():
     station = request.args.get("station")
-    stations = [st.id for st in Station.query.filter(Station.name.startswith(station)).all()]
-    lifts = Lift.query.filter(Lift.station_id.in_(stations))
+    stations = Station.query.filter(Station.name.startswith(station)).all()
+
+    # Sometimes we've got exact matches, and sometimes not.
+    # This lets us deal with both the "TfL and NR don't agree on whether Station goes at the end of a station name" case
+    # and the "Cambridge vs. Cambridge North" case
+    exact_matches = [st for st in stations if st.name == station]
+    if len(exact_matches) > 0:
+        # We prefer exact matches
+        stations = exact_matches
+    # but will take non-exact but "begins with"
+    lifts = Lift.query.filter(Lift.station_id.in_([st.id for st in stations]))
     return jsonify([{"location": lift.location, "message": lift.message} for lift in lifts])
