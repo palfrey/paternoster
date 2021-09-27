@@ -12,7 +12,7 @@ from hashdict import hashdict
 dataLock = threading.Lock()
 yourTimer = None
 
-POOL_TIME = 5
+POOL_TIME = 30
 
 
 def create_app():
