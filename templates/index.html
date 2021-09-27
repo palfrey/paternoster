@@ -26,6 +26,7 @@
       </div>
       <div id="lifts"></div>
       <hr />
+      <div id="favourites"></div>
       <div>
         Made with data from the
         <a href="https://api.tfl.gov.uk/">Tfl Unified API</a> and the
@@ -52,8 +53,113 @@
       integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU="
       crossorigin="anonymous"
     ></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.1/dist/js.cookie.min.js"
+      integrity="sha256-0H3Nuz3aug3afVbUlsu12Puxva3CP4EhJtPExqs54Vg="
+      crossorigin="anonymous"
+    ></script>
     <script>
-      function refreshLifts(station) {
+      function getFavourites() {
+        let favourites = Cookies.get("favourites");
+        if (favourites === undefined) {
+          favourites = [];
+        } else {
+          favourites = JSON.parse(favourites);
+        }
+        return favourites;
+      }
+
+      function addFavourite(station) {
+        const favourites = getFavourites();
+        favourites.unshift(station);
+        Cookies.set("favourites", JSON.stringify(favourites), {
+          sameSite: "strict",
+        });
+        favouritesList();
+        liftsElement = document.getElementById("lifts");
+        clearChildren(liftsElement);
+      }
+
+      function removeFavourite(station) {
+        let favourites = getFavourites();
+        console.log("existing", favourites);
+        const index = favourites.indexOf(station);
+        favourites.splice(index, 1);
+        console.log("revised", index, station, favourites);
+        Cookies.set("favourites", JSON.stringify(favourites), {
+          sameSite: "strict",
+        });
+        favouritesList();
+      }
+
+      function addliftsBlock(liftsElement, station, data) {
+        const holder = document.createElement("span");
+        holder.id = "station-" + station.replace(" ", "-");
+        if (data.length === 0) {
+          const span = document.createElement("span");
+          span.innerHTML = "No broken lifts for " + station;
+          holder.appendChild(span);
+          holder.appendChild(document.createElement("br"));
+        } else {
+          const message = document.createElement("span");
+          message.innerText = "Issues with lifts at";
+          holder.appendChild(message);
+          const liftList = document.createElement("ul");
+          for (const lift of data) {
+            const item = document.createElement("li");
+            item.innerText = lift["location"];
+            if (lift["message"] != "Unknown") {
+              item.innerText += " - " + lift["message"];
+            }
+            liftList.appendChild(item);
+          }
+          holder.appendChild(liftList);
+        }
+        let button = document.createElement("button");
+        button.setAttribute("type", "button");
+        button.setAttribute("class", "btn btn-primary");
+        button.setAttribute(
+          "onClick",
+          "javascript:refreshLifts('" + station + "', '" + holder.id + "')"
+        );
+        button.innerHTML = "Refresh lifts list";
+        holder.appendChild(button);
+
+        button = document.createElement("button");
+        button.setAttribute("type", "button");
+        button.setAttribute("class", "btn btn-warning");
+        const favourites = getFavourites();
+        if (favourites.includes(station)) {
+          button.setAttribute(
+            "onClick",
+            "javascript:removeFavourite('" + station + "')"
+          );
+          button.innerHTML = "Remove favourite";
+        } else {
+          button.setAttribute(
+            "onClick",
+            "javascript:addFavourite('" + station + "')"
+          );
+          button.innerHTML = "Add to favourites";
+        }
+        holder.appendChild(button);
+
+        liftsElement.appendChild(holder);
+        return holder;
+      }
+
+      function clearChildren(element) {
+        while (true) {
+          const child = element.firstChild;
+          if (child === null) {
+            break;
+          }
+          console.log("removing", child);
+          element.removeChild(child);
+        }
+      }
+
+      function refreshLifts(station, holder) {
         if (station === undefined) {
           station = document.getElementById("station").value;
         }
@@ -62,42 +168,47 @@
           "getlifts",
           { station: station },
           function (data, status, xhr) {
-            const liftsElement = document.getElementById("lifts");
-            while (true) {
-              const child = liftsElement.firstChild;
-              if (child === null) {
-                break;
-              }
-              console.log("removing", child);
-              liftsElement.removeChild(child);
-            }
-            if (data.length === 0) {
-              liftsElement.innerText = "No broken lifts for " + station;
-              liftsElement.appendChild(document.createElement("br"));
+            let liftsElement;
+            if (holder !== undefined) {
+              liftsElement = document.getElementById(holder);
+              clearChildren(liftsElement);
+
+              const header = document.createElement("h4");
+              header.innerHTML = station;
+              liftsElement.appendChild(header);
             } else {
-              const message = document.createElement("span");
-              message.innerText = "Issues with lifts at";
-              liftsElement.appendChild(message);
-              const liftList = document.createElement("ul");
-              for (const lift of data) {
-                const item = document.createElement("li");
-                item.innerText = lift["location"];
-                if (lift["message"] != "Unknown") {
-                  item.innerText += " - " + lift["message"];
-                }
-                liftList.appendChild(item);
-              }
-              liftsElement.appendChild(liftList);
+              liftsElement = document.getElementById("lifts");
+              clearChildren(liftsElement);
             }
-            const button = document.createElement("button");
-            button.setAttribute("type", "button");
-            button.setAttribute("class", "btn btn-primary");
-            button.setAttribute("onClick", "javascript:refreshLifts()");
-            button.innerHTML = "Refresh lifts list";
-            liftsElement.appendChild(button);
+            addliftsBlock(liftsElement, station, data);
+            if (holder !== undefined) {
+              liftsElement.appendChild(document.createElement("hr"));
+            }
           }
         );
       }
+
+      function favouritesList() {
+        const favouriteElement = document.getElementById("favourites");
+        clearChildren(favouriteElement);
+        const favourites = getFavourites();
+        if (favourites.length > 0) {
+          for (const favourite of favourites) {
+            $.getJSON(
+              "getlifts",
+              { station: favourite },
+              function (data, status, xhr) {
+                const holder = addliftsBlock(favouriteElement, favourite, data);
+                const header = document.createElement("h4");
+                header.innerHTML = favourite;
+                holder.insertBefore(header, holder.firstChild);
+                holder.appendChild(document.createElement("hr"));
+              }
+            );
+          }
+        }
+      }
+
       $(function () {
         var cache = {};
         $("#station").autocomplete({
@@ -117,6 +228,7 @@
             refreshLifts(ui.item.value);
           },
         });
+        favouritesList();
       });
     </script>
   </body>
