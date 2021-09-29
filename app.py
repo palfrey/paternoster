@@ -6,8 +6,11 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate, upgrade
 import atexit
 import sys
-import apis
-from hashdict import hashdict
+
+try:
+    import apis
+except ImportError:
+    from . import apis
 
 dataLock = threading.Lock()
 yourTimer = None
@@ -40,7 +43,7 @@ def create_app():
         id = db.Column(db.Integer, primary_key=True)
         location = db.Column(db.String(128))
         message = db.Column(db.Text)
-        station_id = db.Column(db.Integer, db.ForeignKey("station.id"), nullable=False)
+        station_id = db.Column(db.Integer, db.ForeignKey("station.id", ondelete="CASCADE"), nullable=False)
         station = db.relationship("Station", backref=db.backref("lifts", lazy=True))
         source = db.Column(db.String(128))
 
@@ -178,10 +181,11 @@ def getlifts():
         stations = exact_matches
     # but will take non-exact but "begins with"
     lifts = Lift.query.filter(Lift.station_id.in_([st.id for st in stations]))
-    return jsonify(list(set([hashdict({"location": lift.location, "message": lift.message}) for lift in lifts])))
+    return jsonify(list(set([apis.hashdict({"location": lift.location, "message": lift.message}) for lift in lifts])))
 
 
-if os.environ.get("UWSGI_RELOADS") is None:
-    yourTimer.cancel()
-    # Running as test, not uwsgi block
+if os.environ.get("UWSGI_RELOADS") is None and not sys.argv[0].endswith("flask"):
+    if yourTimer is not None:
+        yourTimer.cancel()
+    # Running as test, not uwsgi block or flask
     sys.exit()
