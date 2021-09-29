@@ -57,20 +57,28 @@ def create_app():
             yourTimer.cancel()
             yourTimer = None
 
-    def update_nr_stations():
-        nr_stations = apis.nr_stations()
-        Station.query.filter_by(source="nr").delete()
-        for station in nr_stations:
-            obj = Station(name=station, source="nr")
+    def update_stations(kind, stations):
+        old_stations = set([st.name for st in Station.query.filter_by(source=kind).all()])
+        missing_stations = old_stations - stations
+        print("missing stations", missing_stations)
+        for station in missing_stations:
+            id = Station.query.filter_by(source=kind, name=station).all()[0].id
+            Lift.query.filter_by(station_id=id).delete()
+            Station.query.filter_by(id=id).delete()
+        new_stations = stations - old_stations
+        print("new stations", new_stations)
+        for station in new_stations:
+            obj = Station(name=station, source=kind)
             db.session.add(obj)
+
+    def update_nr_stations():
+        nr_stations = set(apis.nr_stations())
+        update_stations("nr", nr_stations)
         print("updated nr stations")
 
     def update_tfl_stations():
         tfl_stations = apis.tfl_stations()
-        Station.query.filter_by(source="tfl").delete()
-        for station in tfl_stations:
-            obj = Station(name=station, source="tfl")
-            db.session.add(obj)
+        update_stations("tfl", tfl_stations)
         print("updated tfl stations")
 
     def closest_station(station_source: str, name: str):
