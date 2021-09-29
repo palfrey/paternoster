@@ -43,7 +43,7 @@ def create_app():
         id = db.Column(db.Integer, primary_key=True)
         location = db.Column(db.String(128))
         message = db.Column(db.Text)
-        station_id = db.Column(db.Integer, db.ForeignKey("station.id", ondelete="CASCADE"), nullable=False)
+        station_id = db.Column(db.Integer, db.ForeignKey("station.id"), nullable=False)
         station = db.relationship("Station", backref=db.backref("lifts", lazy=True))
         source = db.Column(db.String(128))
 
