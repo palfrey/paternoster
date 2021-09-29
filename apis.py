@@ -31,8 +31,9 @@ portfolio(where: {status: {status: {_neq: "Available"}}, type: {_eq: "Lift"}}) {
         "https://nr-lift-and-escalator.azure-api.net/gateway/v1/",
         json={"query": ALL_STATIONS},
     )
-    res.raise_for_status()
-    print(len(res.json()["data"]["portfolio"]))
+    if res.status_code != 200:
+        print("Issue with NR API (stations)", res.status_code, res.text)
+        return
     for lift in res.json()["data"]["portfolio"]:
         yield {
             "status": lift["status"]["status"],
@@ -51,7 +52,9 @@ def nr_stations() -> List[str]:
         "https://nr-lift-and-escalator.azure-api.net/gateway/v1/",
         json={"query": ALL_STATIONS},
     )
-    res.raise_for_status()
+    if res.status_code != 200:
+        print("Issue with NR API (lifts)", res.status_code, res.text)
+        return
     return [
         reduce_name(station["station"])
         for station in res.json()["data"]["portfolio"]
@@ -61,7 +64,9 @@ def nr_stations() -> List[str]:
 
 def tflapi_lift_issues():
     res = requests.get("https://api.tfl.gov.uk/StopPoint/Mode/tube,dlr,national-rail,overground,tflrail/Disruption")
-    res.raise_for_status()
+    if res.status_code != 200:
+        print("Issue with TfL API (lifts)", res.status_code, res.text)
+        return
     for issue in res.json():
         if issue["description"].lower().find("lift") != -1:
             yield hashdict(
@@ -75,7 +80,9 @@ def tflapi_lift_issues():
 
 def tflapi_lift_disruptions():
     res = requests.get("https://api.tfl.gov.uk/Disruptions/Lifts/")
-    res.raise_for_status()
+    if res.status_code != 200:
+        print("Issue with TfL API (lift disruptions)", res.status_code, res.text)
+        return
     for issue in res.json():
         yield hashdict(
             {
@@ -91,9 +98,11 @@ def tfl_stations():
     stations = []
     while True:
         print(f"page {page}")
-        resp = requests.get(f"https://api.tfl.gov.uk/StopPoint/Mode/tube%2Cdlr%2Coverground%2Ctflrail?page={page}")
-        resp.raise_for_status()
-        data = resp.json()
+        res = requests.get(f"https://api.tfl.gov.uk/StopPoint/Mode/tube%2Cdlr%2Coverground%2Ctflrail?page={page}")
+        if res.status_code != 200:
+            print("Issue with TfL API (stations)", res.status_code, res.text)
+            break
+        data = res.json()
         stations += [reduce_name(stopPoint["commonName"]) for stopPoint in data["stopPoints"]]
         if len(stations) == data["total"]:
             break
@@ -102,10 +111,12 @@ def tfl_stations():
 
 
 def trackernet_issues():
-    resp = requests.get("http://cloud.tfl.gov.uk/TrackerNet/StationStatus/IncidentsOnly")
-    resp.raise_for_status()
-    resp.encoding = "utf-8-sig"
-    data = fromstring(resp.text)
+    res = requests.get("http://cloud.tfl.gov.uk/TrackerNet/StationStatus/IncidentsOnly")
+    if res.status_code != 200:
+        print("Issue with TfL API (trackernet)", res.status_code, res.text)
+        return
+    res.encoding = "utf-8-sig"
+    data = fromstring(res.text)
     for stationstatus in data.iter(tag="{http://webservices.lul.co.uk/}StationStatus"):
         status_element = stationstatus.find("{http://webservices.lul.co.uk/}Status")
         status = status_element.get("Description")
