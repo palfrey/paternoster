@@ -14,6 +14,7 @@ There is a live instance at https://paternoster.herokuapp.com/
 
 1. `pip install -r requirements.txt`
 2. `make debug`
+3. Goto http://localhost:5000/
 
 ## Acknowledgements
 
