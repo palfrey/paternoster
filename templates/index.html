@@ -74,6 +74,7 @@
         favourites.unshift(station);
         Cookies.set("favourites", JSON.stringify(favourites), {
           sameSite: "strict",
+          expires: 365,
         });
         favouritesList();
         liftsElement = document.getElementById("lifts");
@@ -88,6 +89,7 @@
         console.log("revised", index, station, favourites);
         Cookies.set("favourites", JSON.stringify(favourites), {
           sameSite: "strict",
+          expires: 365,
         });
         favouritesList();
       }
