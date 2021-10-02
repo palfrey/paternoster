@@ -39,6 +39,9 @@ def create_app():
         name = db.Column(db.String(128))
         source = db.Column(db.String(128))
 
+        def to_json(self):
+            return apis.hashdict({"id": self.id, "name": self.name, "source": self.source})
+
     class Lift(db.Model):
         id = db.Column(db.Integer, primary_key=True)
         location = db.Column(db.String(128))
@@ -199,7 +202,23 @@ def getlifts():
         if len(tfl_stations) > 0 and len(nr_stations) > 0:
             stations = tfl_stations
     lifts = Lift.query.filter(Lift.station_id.in_([st.id for st in stations]))
-    return jsonify(list(set([apis.hashdict({"location": lift.location, "message": lift.message}) for lift in lifts])))
+    station_map = dict([(st.id, st) for st in stations])
+    return jsonify(
+        list(
+            set(
+                [
+                    apis.hashdict(
+                        {
+                            "location": lift.location,
+                            "message": lift.message,
+                            "station": station_map[lift.station_id].to_json(),
+                        }
+                    )
+                    for lift in lifts
+                ]
+            )
+        )
+    )
 
 
 if os.environ.get("UWSGI_RELOADS") is None and not sys.argv[0].endswith("flask"):
