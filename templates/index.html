@@ -94,7 +94,7 @@
         favouritesList();
       }
 
-      function addliftsBlock(liftsElement, station, data) {
+      function addliftsBlock(liftsElement, station, data, fromSearch) {
         const holder = document.createElement("span");
         holder.id = "station-" + station.replace(" ", "-");
         if (data.length === 0) {
@@ -120,10 +120,17 @@
         let button = document.createElement("button");
         button.setAttribute("type", "button");
         button.setAttribute("class", "btn btn-primary");
-        button.setAttribute(
-          "onClick",
-          "javascript:refreshLifts('" + station + "', '" + holder.id + "')"
-        );
+        if (fromSearch) {
+          button.setAttribute(
+            "onClick",
+            "javascript:refreshLifts('" + station + "')"
+          );
+        } else {
+          button.setAttribute(
+            "onClick",
+            "javascript:refreshLifts('" + station + "', '" + holder.id + "')"
+          );
+        }
         button.innerHTML = "Refresh lifts list";
         holder.appendChild(button);
 
@@ -182,7 +189,7 @@
               liftsElement = document.getElementById("lifts");
               clearChildren(liftsElement);
             }
-            addliftsBlock(liftsElement, station, data);
+            addliftsBlock(liftsElement, station, data, holder === undefined);
             if (holder !== undefined) {
               liftsElement.appendChild(document.createElement("hr"));
             }
@@ -200,7 +207,12 @@
               "getlifts",
               { station: favourite },
               function (data, status, xhr) {
-                const holder = addliftsBlock(favouriteElement, favourite, data);
+                const holder = addliftsBlock(
+                  favouriteElement,
+                  favourite,
+                  data,
+                  false
+                );
                 const header = document.createElement("h4");
                 header.innerHTML = favourite;
                 holder.insertBefore(header, holder.firstChild);
