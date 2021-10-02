@@ -191,6 +191,13 @@ def getlifts():
         # We prefer exact matches
         stations = exact_matches
     # but will take non-exact but "begins with"
+    if len(stations) > 1:
+        # If we have more than one, there's sometimes issues where one API thinks one thing and the other something else
+        # Current rule of thumb is if there's both TfL and NR entries, skip the NR entry as those appear to be wrong more often (e.g. Canonbury)
+        nr_stations = [st for st in stations if st.source == "nr"]
+        tfl_stations = [st for st in stations if st.source == "tfl"]
+        if len(tfl_stations) > 0 and len(nr_stations) > 0:
+            stations = tfl_stations
     lifts = Lift.query.filter(Lift.station_id.in_([st.id for st in stations]))
     return jsonify(list(set([apis.hashdict({"location": lift.location, "message": lift.message}) for lift in lifts])))
 
