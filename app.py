@@ -140,6 +140,7 @@ def create_app():
                             value["func"]()
                             update.last_updated = datetime.now()
                             db.session.commit()
+                            print(f"{key}: updated")
                         except Exception as e:
                             print("Issue during update cycle", e)
                     else:
