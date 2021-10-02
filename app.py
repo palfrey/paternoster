@@ -133,9 +133,12 @@ def create_app():
                     age = datetime.now() - update.last_updated
                     if age > value["limit"]:
                         print(f"{key}: out of date")
-                        value["func"]()
-                        update.last_updated = datetime.now()
-                        db.session.commit()
+                        try:
+                            value["func"]()
+                            update.last_updated = datetime.now()
+                            db.session.commit()
+                        except Exception as e:
+                            print("Issue during update cycle", e)
                     else:
                         print(f"{key}: ok {age}")
                 else:
