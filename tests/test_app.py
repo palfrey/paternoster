@@ -26,4 +26,4 @@ def test_get_lifts():
     assert resp.status_code == 200, resp.content
     data = resp.json()
     assert len(data) == 2, data
-    assert sorted([lift["location"] for lift in data]) == ["ISU/Admin Office", "Platform 14 - No. 3 (Gatwick)"]
+    assert sorted([lift["location"] for lift in data]) == ["Boots", "ISU/Admin Office"]

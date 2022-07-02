@@ -50,6 +50,12 @@ def create_app():
         station = db.relationship("Station", backref=db.backref("lifts", lazy=True))
         source = db.Column(db.String(128))
 
+    # Hack workaround for the new NR API not letting us get lift station data
+    class Asset(db.Model):
+        id = db.Column(db.Integer, primary_key=True)
+        station_id = db.Column(db.Integer, db.ForeignKey("station.id"), nullable=False)
+        station = db.relationship("Station", backref=db.backref("assets", lazy=True))
+
     class Updates(db.Model):
         id = db.Column(db.String(128), primary_key=True)
         last_updated = db.Column(db.DateTime, nullable=True)
@@ -75,8 +81,15 @@ def create_app():
             db.session.add(obj)
 
     def update_nr_stations():
-        nr_stations = set(apis.nr_stations())
-        update_stations("nr", nr_stations)
+        nr_stations = apis.nr_stations()
+        update_stations("nr", set(nr_stations.keys()))
+        Asset.query.delete()
+        for (station_key, assets) in nr_stations.items():
+            station = closest_station("nr", station_key)
+            for asset in assets:
+                obj = Asset(id=asset, station=station)
+                db.session.add(obj)
+
         print("updated nr stations")
 
     def update_tfl_stations():
@@ -100,7 +113,9 @@ def create_app():
         lifts = apis.nr_non_working_lifts()
         Lift.query.filter_by(source="nr").delete()
         for lift in lifts:
-            station = closest_station("nr", lift["station"])
+            assets = Asset.query.filter_by(id=lift["id"]).all()
+            assert len(assets) == 1
+            station = assets[0].station
             obj = Lift(message=lift["status"], location=lift["location"], source="nr", station_id=station.id)
             db.session.add(obj)
 
@@ -158,7 +173,7 @@ def create_app():
     if "db" not in sys.argv:
         doStuff()
     atexit.register(interrupt)
-    return {"app": app, "Updates": Updates, "Station": Station, "Lift": Lift}
+    return {"app": app, "Updates": Updates, "Station": Station, "Lift": Lift, "Asset": Asset}
 
 
 data = create_app()
