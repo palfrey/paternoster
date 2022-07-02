@@ -195,9 +195,18 @@ def getlifts():
         # We prefer exact matches
         stations = exact_matches
     # but will take non-exact but "begins with"
+
     if len(stations) > 1:
         # If we have more than one, there's sometimes issues where one API thinks one thing and the other something else
-        # Current rule of thumb is if there's both TfL and NR entries, skip the NR entry as those appear to be wrong more often (e.g. Canonbury)
+        # First see if only one has lifts, and use that
+
+        lift_counts = [(st, Lift.query.filter(Lift.station == st).count()) for st in stations]
+        non_zero_lifts = [item[0] for item in lift_counts if item[1] != 0]
+        if len(non_zero_lifts) == 1:
+            stations = non_zero_lifts
+
+    if len(stations) > 1:
+        # Next try if there's both TfL and NR entries, skip the NR entry as those appear to be wrong more often (e.g. Canonbury)
         nr_stations = [st for st in stations if st.source == "nr"]
         tfl_stations = [st for st in stations if st.source == "tfl"]
         if len(tfl_stations) > 0 and len(nr_stations) > 0:
