@@ -63,7 +63,9 @@ def nr_stations() -> List[str]:
 
 
 def tflapi_lift_issues():
-    res = requests.get("https://api.tfl.gov.uk/StopPoint/Mode/tube,dlr,national-rail,overground,tflrail/Disruption")
+    res = requests.get(
+        "https://api.tfl.gov.uk/StopPoint/Mode/tube,dlr,national-rail,overground,elizabeth-line/Disruption"
+    )
     if res.status_code != 200:
         print("Issue with TfL API (lifts)", res.status_code, res.text)
         return
@@ -98,7 +100,9 @@ def tfl_stations():
     stations = []
     while True:
         print(f"page {page}")
-        res = requests.get(f"https://api.tfl.gov.uk/StopPoint/Mode/tube%2Cdlr%2Coverground%2Ctflrail?page={page}")
+        res = requests.get(
+            f"https://api.tfl.gov.uk/StopPoint/Mode/tube%2Cdlr%2Coverground%2Celizabeth-line?page={page}"
+        )
         if res.status_code != 200:
             print("Issue with TfL API (stations)", res.status_code, res.text)
             break
