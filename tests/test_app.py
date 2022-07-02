@@ -15,6 +15,8 @@ def test_get_stations():
     assert resp.status_code == 200, resp.content
     assert resp.json() == [
         {"id": "Manchester Victoria", "label": "Manchester Victoria", "value": "Manchester Victoria"},
+        {"id": "Royal Victoria", "label": "Royal Victoria", "value": "Royal Victoria"},
+        {"id": "Royal Victoria DLR", "label": "Royal Victoria DLR", "value": "Royal Victoria DLR"},
         {"id": "Victoria", "label": "Victoria", "value": "Victoria"},
     ]
 
