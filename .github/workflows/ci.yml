@@ -11,10 +11,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - name: Set up Python 3.7
+    - name: Set up Python 3.9
       uses: actions/setup-python@v2
       with:
-        python-version: 3.7
+        python-version: 3.9
     - uses: actions/cache@v2
       with:
         path: ~/.cache/pip
@@ -25,6 +25,8 @@ jobs:
       run: |
         pip install -r requirements.txt
     - name: Test app
+      env:
+        PRIMARY_KEY: ${{ secrets.PRIMARY_KEY }}
       run: |-
         python app.py
 
@@ -34,4 +36,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Integration test
+      env:
+        PRIMARY_KEY: ${{ secrets.PRIMARY_KEY }}
       run: docker-compose up --build --exit-code-from tests
