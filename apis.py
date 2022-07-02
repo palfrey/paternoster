@@ -28,7 +28,7 @@ portfolio(where: {status: {status: {_neq: "Available"}}, type: {_eq: "Lift"}}) {
 }"""
 
     res = requests.post(
-        "https://nr-lift-and-escalator.azure-api.net/gateway/v1/",
+        "https://nr-lift-and-escalator.azure-api.net/gateway/v2/",
         json={"query": ALL_STATIONS},
     )
     if res.status_code != 200:
@@ -44,17 +44,18 @@ portfolio(where: {status: {status: {_neq: "Available"}}, type: {_eq: "Lift"}}) {
 
 def nr_stations() -> List[str]:
     ALL_STATIONS = """query {
- portfolio(distinct_on: [station]) {
-   station
+ stations {
+   name
  }
 }"""
     res = requests.post(
-        "https://nr-lift-and-escalator.azure-api.net/gateway/v1/",
+        "https://nr-lift-and-escalator.azure-api.net/graphql/v2/",
         json={"query": ALL_STATIONS},
     )
     if res.status_code != 200:
         print("Issue with NR API (lifts)", res.status_code, res.text)
         return
+    print(res.json())
     return [
         reduce_name(station["station"])
         for station in res.json()["data"]["portfolio"]
