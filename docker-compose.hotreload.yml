@@ -1,0 +1,11 @@
+---
+version: '3'
+services:
+  paternoster:
+    volumes:
+    - .:/app
+
+  tests:
+    volumes:
+    - .:/app
+    command: sleep infinity

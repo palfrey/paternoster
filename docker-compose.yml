@@ -1,0 +1,11 @@
+---
+version: '3'
+services:
+  paternoster:
+    build: .
+    ports:
+    - 5000:5000
+
+  tests:
+    build: .
+    command: pytest -vvv -s
