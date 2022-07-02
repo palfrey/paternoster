@@ -5,3 +5,4 @@ Flask-Migrate
 pre-commit
 uwsgi
 psycopg2-binary
+pytest
