@@ -25,6 +25,8 @@ jobs:
       run: |
         pip install -r requirements.txt
     - name: Test app
+      env:
+        PRIMARY_KEY: ${{ secrets.PRIMARY_KEY }}
       run: |-
         python app.py
 
