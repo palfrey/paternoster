@@ -6,7 +6,7 @@ Paternoster is a tool for helping you determine when the train station you're go
 
 ![demo](demo.png)
 
-It uses data from the [Tfl Unified API](https://api.tfl.gov.uk/) and the [Network Rail Lifts & Escalators API](https://nr-lift-and-escalator.developer.azure-api.net/), and so has data for lifts in both London and the wider UK.
+It uses data from the [Tfl Unified API](https://api.tfl.gov.uk/) and the [Network Rail Lifts & Escalators API](https://portal.nr-lift-and-escalator.net/), and so has data for lifts in both London and the wider UK.
 
 There is a live instance at https://paternoster.herokuapp.com/
 
