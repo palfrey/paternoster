@@ -8,7 +8,7 @@ alembic==1.7.3
     # via flask-migrate
 attrs==21.4.0
     # via pytest
-backports.entry-points-selectable==1.1.0
+backports-entry-points-selectable==1.1.0
     # via virtualenv
 certifi==2021.5.30
     # via requests
@@ -46,7 +46,7 @@ itsdangerous==2.0.1
     # via flask
 jinja2==3.0.1
     # via flask
-mako==1.1.5
+mako==1.2.2
     # via alembic
 markupsafe==2.0.1
     # via
