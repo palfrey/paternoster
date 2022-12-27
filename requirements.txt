@@ -98,7 +98,7 @@ virtualenv==20.8.1
     # via pre-commit
 werkzeug==2.0.1
     # via flask
-wheel==0.37.0
+wheel==0.38.1
     # via pip-tools
 
 # The following packages are considered to be unsafe in a requirements file:
