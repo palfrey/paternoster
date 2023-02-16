@@ -1,4 +1,3 @@
-from email.mime import base
 import requests
 
 base_url = "http://paternoster:5000"
@@ -25,4 +24,4 @@ def test_get_lifts():
     resp = requests.get(f"{base_url}/getlifts?station=Victoria")
     assert resp.status_code == 200, resp.content
     data = resp.json()
-    assert sorted([lift["location"] for lift in data]) == ["ISU/Admin Office"]
+    assert sorted([lift["location"] for lift in data]) == ["ISU/Admin Office"], data

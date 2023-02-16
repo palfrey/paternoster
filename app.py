@@ -240,6 +240,7 @@ def getlifts():
                         }
                     )
                     for lift in lifts
+                    if lift.location != ""
                 ]
             )
         )
