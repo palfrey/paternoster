@@ -84,7 +84,7 @@ def create_app():
         nr_stations = apis.nr_stations()
         update_stations("nr", set(nr_stations.keys()))
         Asset.query.delete()
-        for (station_key, assets) in nr_stations.items():
+        for station_key, assets in nr_stations.items():
             station = closest_station("nr", station_key)
             for asset in assets:
                 obj = Asset(id=asset, station=station)
