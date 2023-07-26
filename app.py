@@ -114,7 +114,9 @@ def create_app():
         Lift.query.filter_by(source="nr").delete()
         for lift in lifts:
             assets = Asset.query.filter_by(id=lift["id"]).all()
-            assert len(assets) == 1
+            if len(assets) == 0:
+                continue
+            assert len(assets) == 1, assets
             station = assets[0].station
             obj = Lift(message=lift["status"], location=lift["location"], source="nr", station_id=station.id)
             db.session.add(obj)
