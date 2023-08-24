@@ -93,7 +93,7 @@ tomli==1.2.1
     #   pytest
 urllib3==1.26.7
     # via requests
-uwsgi==2.0.19.1
+uwsgi==2.0.22
     # via -r requirements.in
 virtualenv==20.8.1
     # via pre-commit
