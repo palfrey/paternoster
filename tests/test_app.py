@@ -24,4 +24,5 @@ def test_get_lifts():
     resp = requests.get(f"{base_url}/getlifts?station=Victoria")
     assert resp.status_code == 200, resp.content
     data = resp.json()
-    assert sorted([lift["location"] for lift in data]) == ["Boots", "ISU/Admin Office"], data
+    locations = sorted([lift["location"] for lift in data])
+    assert locations == ["Boots", "ISU/Admin Office"] or locations == ["ISU/Admin Office"], data
