@@ -8,11 +8,15 @@ import atexit
 import sys
 
 try:
+    import uwsgi
+except ImportError:
+    uwsgi = None
+    dataLock = threading.Lock()
+try:
     import apis
 except ImportError:
     from . import apis
 
-dataLock = threading.Lock()
 yourTimer = None
 
 POOL_TIME = 30
@@ -145,28 +149,36 @@ def create_app():
     def doStuff():
         global yourTimer
         yourTimer = None
-        with dataLock:
-            print("update")
-            for key, value in updaters.items():
-                update = Updates.query.get(key)
-                if update is not None:
-                    age = datetime.now() - update.last_updated
-                    if age > value["limit"]:
-                        print(f"{key}: out of date")
-                        try:
-                            value["func"]()
-                            update.last_updated = datetime.now()
-                            db.session.commit()
-                            print(f"{key}: updated")
-                        except Exception as e:
-                            print("Issue during update cycle", e)
-                    else:
-                        print(f"{key}: ok {age}")
+        if uwsgi is not None:
+            uwsgi.lock()
+        else:
+            dataLock.acquire()
+        print("update")
+        for key, value in updaters.items():
+            update = Updates.query.get(key)
+            if update is not None:
+                age = datetime.now() - update.last_updated
+                if age > value["limit"]:
+                    print(f"{key}: out of date")
+                    try:
+                        value["func"]()
+                        update.last_updated = datetime.now()
+                        db.session.commit()
+                        print(f"{key}: updated")
+                    except Exception as e:
+                        print("Issue during update cycle", e)
                 else:
-                    value["func"]()
-                    update = Updates(id=key, last_updated=datetime.now())
-                    db.session.add(update)
-                    db.session.commit()
+                    print(f"{key}: ok {age}")
+            else:
+                value["func"]()
+                update = Updates(id=key, last_updated=datetime.now())
+                db.session.add(update)
+                db.session.commit()
+
+        if uwsgi is not None:
+            uwsgi.unlock()
+        else:
+            dataLock.release()
 
         if os.environ.get("FLASK_RUN_FROM_CLI") != "true":
             yourTimer = threading.Timer(POOL_TIME, doStuff, ())
