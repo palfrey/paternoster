@@ -77,7 +77,7 @@ pytest==7.1.2
     # via -r requirements.in
 pyyaml==5.4.1
     # via pre-commit
-requests==2.31.0
+requests==2.32.0
     # via -r requirements.in
 six==1.16.0
     # via virtualenv
