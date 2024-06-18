@@ -91,7 +91,7 @@ tomli==1.2.1
     # via
     #   pep517
     #   pytest
-urllib3==1.26.18
+urllib3==1.26.19
     # via requests
 uwsgi==2.0.22
     # via -r requirements.in
