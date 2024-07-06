@@ -10,7 +10,7 @@ attrs==21.4.0
     # via pytest
 backports-entry-points-selectable==1.1.0
     # via virtualenv
-certifi==2023.7.22
+certifi==2024.7.4
     # via requests
 cfgv==3.3.1
     # via pre-commit
