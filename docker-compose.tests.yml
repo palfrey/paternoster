@@ -1,0 +1,8 @@
+---
+version: '3'
+services:
+  tests:
+    build: .
+    command: wait-for-it -h paternoster -p 5000 -s -t 0 --  pytest -vvv -s
+    links:
+    - paternoster

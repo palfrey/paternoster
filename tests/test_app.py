@@ -13,6 +13,7 @@ def test_get_stations():
     resp = requests.get(f"{base_url}/getstations?term=Victoria")
     assert resp.status_code == 200, resp.content
     assert resp.json() == [
+        {"id": "London Victoria", "label": "London Victoria", "value": "London Victoria"},
         {"id": "Manchester Victoria", "label": "Manchester Victoria", "value": "Manchester Victoria"},
         {"id": "Royal Victoria", "label": "Royal Victoria", "value": "Royal Victoria"},
         {"id": "Royal Victoria DLR", "label": "Royal Victoria DLR", "value": "Royal Victoria DLR"},
@@ -21,8 +22,8 @@ def test_get_stations():
 
 
 def test_get_lifts():
-    resp = requests.get(f"{base_url}/getlifts?station=Victoria")
+    resp = requests.get(f"{base_url}/getlifts?station=London+Victoria")
     assert resp.status_code == 200, resp.content
     data = resp.json()
     locations = sorted([lift["location"] for lift in data])
-    assert locations == ["Boots", "ISU/Admin Office"] or locations == ["ISU/Admin Office"], data
+    assert locations == ["The Boots Lift"], data

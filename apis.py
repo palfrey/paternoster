@@ -52,7 +52,7 @@ def nr_stations_and_lifts() -> NRStationsAndLifts:
             continue
         station = lift["station"]
         if station["id"] not in stations:
-            stations[station["id"]] = station["name"]
+            stations[station["id"]] = reduce_name(station["name"])
 
         liftinfo: LiftInfo = {"location": lift["alternateName"], "station_id": station["id"], "status": lift["status"]}
         lift_id = lift["uprn"]
