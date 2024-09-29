@@ -6,3 +6,4 @@ pre-commit
 uwsgi
 psycopg2-binary
 pytest
+typing-extensions

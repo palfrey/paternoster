@@ -1,6 +1,8 @@
 from datetime import datetime, time, timedelta
 import os
 from typing import Dict, Generator, List
+import uuid
+from typing_extensions import TypedDict
 import requests
 
 try:
@@ -9,86 +11,57 @@ except ImportError:
     from .hashdict import hashdict
 from defusedxml.ElementTree import fromstring
 
-PRIMARY_KEY = os.environ["PRIMARY_KEY"]
+NRW_API_KEY = os.environ["NRW_API_KEY"]
 
 
 def reduce_name(name: str) -> str:
-    return name.replace(" Station", "").replace(" Rail", "").replace(" Underground", "")
-
-
-_expiry_time = None
-_nr_token = None
-
-
-def nr_get_token():
-    global _expiry_time, _nr_token
-    if _expiry_time is None or _expiry_time < datetime.now():
-        res = requests.post(
-            "https://nr-lift-and-escalator.azure-api.net/auth/token/", headers={"x-lne-api-key": PRIMARY_KEY}
-        )
-        res.raise_for_status()
-        _nr_token = res.json()["access_token"]
-        _expiry_time = timedelta(seconds=res.json()["expires_in"] / 2) + datetime.now()
-    return _nr_token
-
-
-def nr_non_working_lifts() -> Generator[Dict, None, None]:
-    ALL_STATIONS = """query {
-assets(where: {status: {status: {_neq: "Available"}}, type: {_eq: "Lift"}}) {
-   status {
-     status
-     engineerOnSite
-     independent
-     isolated
-   }
-   type
-   location
-   id
- }
-}"""
-
-    token = nr_get_token()
-    res = requests.post(
-        "https://nr-lift-and-escalator.azure-api.net/gateway/v2/",
-        headers={"x-lne-api-key": PRIMARY_KEY, "Authorization": f"Bearer {token}"},
-        json={"query": ALL_STATIONS},
+    return (
+        name.replace(" Station", "")
+        .replace(" Stn", "")
+        .replace(" Rail", "")
+        .replace(" Underground", "")
+        .replace(" (London)", "")
     )
-    if res.status_code != 200:
-        print("Issue with NR API (stations)", res.status_code, res.text)
-        return
-    for lift in res.json()["data"]["assets"]:
-        yield {
-            "status": lift["status"]["status"],
-            "location": lift["location"],
-            "id": int(lift["id"]),
-        }
 
 
-def nr_stations() -> dict[str, List[int]]:
-    ALL_STATIONS = """query {
- stations {
-   name
-   assets {
-       id
-   }
- }
-}"""
-    token = nr_get_token()
-    res = requests.post(
-        "https://nr-lift-and-escalator.azure-api.net/graphql/v2/",
-        headers={"x-lne-api-key": PRIMARY_KEY, "Authorization": f"Bearer {token}"},
-        json={"query": ALL_STATIONS},
+class LiftInfo(TypedDict):
+    location: str
+    status: str
+    station_id: str
+
+
+class NRStationsAndLifts(TypedDict):
+    stations: dict[str, str]
+    lifts: dict[str, LiftInfo]
+
+
+def nr_stations_and_lifts() -> NRStationsAndLifts:
+    res = requests.get(
+        "https://api1.raildata.org.uk/1033-stations-experience-api---lifts-and-escalatorsv1_0/stations/all/lifts-and-escalators",
+        headers={"x-apikey": NRW_API_KEY, "User-Agent": "paternoster/1.0"},
     )
     if res.status_code != 200:
         print("Issue with NR API (lifts)", res.status_code, res.text)
-        return
-    return dict(
-        [
-            (reduce_name(station["name"]), [int(asset["id"]) for asset in station["assets"]])
-            for station in res.json()["data"]["stations"]
-            if station["name"] not in ["#N/A", None]
-        ]
-    )
+        return {}
+
+    stations: dict[str, str] = {}
+    lifts: dict[str, LiftInfo] = {}
+
+    for lift in res.json()["data"]["resultSet"]:
+        if lift["type"] != "Lift":
+            continue
+        station = lift["station"]
+        if station["id"] not in stations:
+            stations[station["id"]] = station["name"]
+
+        liftinfo: LiftInfo = {"location": lift["alternateName"], "station_id": station["id"], "status": lift["status"]}
+        lift_id = lift["uprn"]
+        if lift_id is None:
+            lift_id = lift["blockId"]
+        assert lift_id is not None, lift
+        lifts[lift_id] = liftinfo
+
+    return {"stations": stations, "lifts": lifts}
 
 
 def tflapi_lift_issues():
@@ -102,6 +75,7 @@ def tflapi_lift_issues():
         if issue["description"].lower().find("lift") != -1:
             yield hashdict(
                 {
+                    "id": str(uuid.uuid4()),
                     "status": issue["description"].strip(),
                     "location": None,
                     "station": reduce_name(issue["commonName"]),
@@ -136,11 +110,11 @@ def tfl_stations():
             print("Issue with TfL API (stations)", res.status_code, res.text)
             break
         data = res.json()
-        stations += [reduce_name(stopPoint["commonName"]) for stopPoint in data["stopPoints"]]
+        stations += [(stopPoint["id"], reduce_name(stopPoint["commonName"])) for stopPoint in data["stopPoints"]]
         if len(stations) == data["total"]:
             break
         page += 1
-    return set(stations)
+    return dict(stations)
 
 
 def trackernet_issues():

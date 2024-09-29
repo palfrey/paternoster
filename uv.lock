@@ -1,0 +1,7 @@
+version = 1
+requires-python = ">=3.11"
+
+[[package]]
+name = "paternoster"
+version = "0.1"
+source = { virtual = "." }

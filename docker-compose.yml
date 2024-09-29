@@ -5,9 +5,11 @@ services:
     build: .
     environment:
     - PRIMARY_KEY=${PRIMARY_KEY}
-    ports:
-    - 5000:5000
+    # ports:
+    # - 5000:5000
 
   tests:
     build: .
     command: pytest -vvv -s
+    links:
+    - paternoster

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import os
 import threading
+import traceback
 from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate, upgrade
@@ -39,7 +40,7 @@ def create_app():
         upgrade()
 
     class Station(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
+        id = db.Column(db.String(128), primary_key=True)
         name = db.Column(db.String(128))
         source = db.Column(db.String(128))
 
@@ -47,18 +48,12 @@ def create_app():
             return apis.hashdict({"id": self.id, "name": self.name, "source": self.source})
 
     class Lift(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
+        id = db.Column(db.String(128), primary_key=True)
         location = db.Column(db.String(128))
         message = db.Column(db.Text)
         station_id = db.Column(db.Integer, db.ForeignKey("station.id"), nullable=False)
         station = db.relationship("Station", backref=db.backref("lifts", lazy=True))
         source = db.Column(db.String(128))
-
-    # Hack workaround for the new NR API not letting us get lift station data
-    class Asset(db.Model):
-        id = db.Column(db.Integer, primary_key=True)
-        station_id = db.Column(db.Integer, db.ForeignKey("station.id"), nullable=False)
-        station = db.relationship("Station", backref=db.backref("assets", lazy=True))
 
     class Updates(db.Model):
         id = db.Column(db.String(128), primary_key=True)
@@ -70,29 +65,32 @@ def create_app():
             yourTimer.cancel()
             yourTimer = None
 
-    def update_stations(kind, stations):
+    def update_stations(kind: str, stations: dict[str, str]) -> None:
         old_stations = set([st.name for st in Station.query.filter_by(source=kind).all()])
-        missing_stations = old_stations - stations
+        missing_stations = old_stations - set(stations.values())
         print("missing stations", missing_stations)
         for station in missing_stations:
             id = Station.query.filter_by(source=kind, name=station).all()[0].id
             Lift.query.filter_by(station_id=id).delete()
             Station.query.filter_by(id=id).delete()
-        new_stations = stations - old_stations
+        new_stations = set(stations.values()) - old_stations
         print("new stations", new_stations)
-        for station in new_stations:
-            obj = Station(name=station, source=kind)
+        for station_id, station in stations.items():
+            if station not in new_stations:
+                continue
+            obj = Station(id=station_id, name=station, source=kind)
             db.session.add(obj)
 
     def update_nr_stations():
-        nr_stations = apis.nr_stations()
-        update_stations("nr", set(nr_stations.keys()))
-        Asset.query.delete()
-        for station_key, assets in nr_stations.items():
-            station = closest_station("nr", station_key)
-            for asset in assets:
-                obj = Asset(id=asset, station=station)
-                db.session.add(obj)
+        nr_stations = apis.nr_stations_and_lifts()
+        update_stations("nr", nr_stations["stations"])
+        Lift.query.filter_by(source="nr").delete()
+        for lift_id, lift in nr_stations["lifts"].items():
+            station = Station.query.get(lift["station_id"])
+            obj = Lift(
+                id=lift_id, message=lift["status"], location=lift["location"], source="nr", station_id=station.id
+            )
+            db.session.add(obj)
 
         print("updated nr stations")
 
@@ -113,36 +111,25 @@ def create_app():
                     return poss
             raise Exception([st.__dict__ for st in stations], name)
 
-    def nr_non_working_lifts():
-        lifts = apis.nr_non_working_lifts()
-        Lift.query.filter_by(source="nr").delete()
-        for lift in lifts:
-            assets = Asset.query.filter_by(id=lift["id"]).all()
-            if len(assets) == 0:
-                continue
-            assert len(assets) == 1, assets
-            station = assets[0].station
-            obj = Lift(message=lift["status"], location=lift["location"], source="nr", station_id=station.id)
-            db.session.add(obj)
-
     def tflapi_lift_issues():
         lifts = apis.tflapi_lift_issues()
         Lift.query.filter_by(source="tflapi").delete()
         for lift in lifts:
             station = closest_station("tfl", lift["station"])
-            obj = Lift(message=lift["status"], location=lift["location"], source="tflapi", station_id=station.id)
+            obj = Lift(
+                id=lift["id"], message=lift["status"], location=lift["location"], source="tflapi", station_id=station.id
+            )
             db.session.add(obj)
 
     updaters = {
         "nr_stations_update": {
             "func": update_nr_stations,
-            "limit": timedelta(days=1),
+            "limit": timedelta(minutes=5),
         },
         "update_tfl_stations": {
             "func": update_tfl_stations,
             "limit": timedelta(days=1),
         },
-        "nr_non_working_lifts": {"func": nr_non_working_lifts, "limit": timedelta(minutes=5)},
         "tflapi_lift_issues": {"func": tflapi_lift_issues, "limit": timedelta(minutes=5)},
     }
 
@@ -167,6 +154,7 @@ def create_app():
                         print(f"{key}: updated")
                     except Exception as e:
                         print("Issue during update cycle", e)
+                        print(traceback.format_exc())
                 else:
                     print(f"{key}: ok {age}")
             else:
@@ -187,7 +175,7 @@ def create_app():
     if "db" not in sys.argv:
         doStuff()
     atexit.register(interrupt)
-    return {"app": app, "Updates": Updates, "Station": Station, "Lift": Lift, "Asset": Asset}
+    return {"app": app, "Updates": Updates, "Station": Station, "Lift": Lift}
 
 
 data = create_app()
