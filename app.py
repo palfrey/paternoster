@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import os
+from pathlib import Path
 import threading
 import traceback
 from flask import Flask, render_template, request, jsonify
@@ -25,10 +26,12 @@ POOL_TIME = 30
 
 def create_app():
     app = Flask(__name__)
-    db_url = os.getenv("DATABASE_URL", "sqlite:///app.db")
+    default_db_path = Path(__file__).parent.joinpath("app.db")
+    db_url = os.getenv("DATABASE_URL", f"sqlite:///{default_db_path.as_posix()}")
     db_url = db_url.replace(  # because of https://stackoverflow.com/questions/62688256/sqlalchemy-exc-nosuchmoduleerror-cant-load-plugin-sqlalchemy-dialectspostgre
         "postgres://", "postgresql://"
     )
+    print(db_url)
     app.config["SQLALCHEMY_DATABASE_URI"] = db_url
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -173,7 +176,8 @@ def create_app():
             yourTimer.start()
 
     if "db" not in sys.argv:
-        doStuff()
+        with app.app_context():
+            doStuff()
     atexit.register(interrupt)
     return {"app": app, "Updates": Updates, "Station": Station, "Lift": Lift}
 
