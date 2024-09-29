@@ -4,12 +4,14 @@ services:
   paternoster:
     build: .
     environment:
-    - PRIMARY_KEY=${PRIMARY_KEY}
-    # ports:
-    # - 5000:5000
+      NRW_API_KEY: ${NRW_API_KEY}
+      DATABASE_URL: postgres://postgres:postgres@postgres/postgres
+    command: wait-for-it -h postgres -p 5432 -s -t 0 -- uwsgi debug-uwsgi.ini
 
-  tests:
-    build: .
-    command: pytest -vvv -s
-    links:
-    - paternoster
+    ports:
+    - 5000:5000
+
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_PASSWORD: postgres
