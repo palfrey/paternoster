@@ -42,7 +42,7 @@ def nr_stations_and_lifts() -> NRStationsAndLifts:
     )
     if res.status_code != 200:
         print("Issue with NR API (lifts)", res.status_code, res.text)
-        return {}
+        return {"stations": {}, "lifts": {}}
 
     stations: dict[str, str] = {}
     lifts: dict[str, LiftInfo] = {}
