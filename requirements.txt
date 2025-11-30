@@ -40,7 +40,7 @@ iniconfig==2.0.0
     # via pytest
 itsdangerous==2.2.0
     # via flask
-jinja2==3.1.4
+jinja2==3.1.5
     # via flask
 mako==1.3.5
     # via alembic
@@ -55,8 +55,6 @@ packaging==24.1
     # via
     #   build
     #   pytest
-pip==24.2
-    # via pip-tools
 pip-tools==7.4.1
     # via -r requirements.in
 platformdirs==4.3.6
@@ -75,10 +73,8 @@ pytest==8.3.3
     # via -r requirements.in
 pyyaml==6.0.2
     # via pre-commit
-requests==2.32.3
+requests==2.32.4
     # via -r requirements.in
-setuptools==75.1.0
-    # via pip-tools
 sqlalchemy==2.0.35
     # via
     #   alembic
@@ -94,7 +90,7 @@ uwsgi==2.0.27
     # via -r requirements.in
 virtualenv==20.26.6
     # via pre-commit
-werkzeug==3.0.4
+werkzeug==3.0.6
     # via flask
 wheel==0.44.0
     # via pip-tools
