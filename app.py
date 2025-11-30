@@ -24,6 +24,16 @@ yourTimer = None
 POOL_TIME = 30
 
 
+class MissingStation(Exception):
+    provider: str
+    station_name: str
+
+    def __init___(self, provider, station_name):
+        self.provider = provider
+        self.station_name = station_name
+        super().__init__(f"Missing station from {provider}: {station_name}")
+
+
 def create_app():
     app = Flask(__name__)
     default_db_path = Path(__file__).parent.joinpath("app.db")
@@ -107,7 +117,7 @@ def create_app():
         if len(stations) == 1:
             return stations[0]
         elif len(stations) == 0:
-            raise Exception((station_source, name))
+            raise MissingStation(station_source, name)
         else:
             for poss in stations:
                 if poss.name == name:
@@ -118,7 +128,11 @@ def create_app():
         lifts = apis.tflapi_lift_issues()
         Lift.query.filter_by(source="tflapi").delete()
         for lift in lifts:
-            station = closest_station("tfl", lift["station"])
+            try:
+                station = closest_station("tfl", lift["station"])
+            except MissingStation:
+                print("Can't find station, skipping lift issues", lift["station"])
+                continue
             obj = Lift(
                 id=lift["id"], message=lift["status"], location=lift["location"], source="tflapi", station_id=station.id
             )
