@@ -84,7 +84,7 @@ typing-extensions==4.12.2
     #   -r requirements.in
     #   alembic
     #   sqlalchemy
-urllib3==2.2.3
+urllib3==2.6.3
     # via requests
 uwsgi==2.0.27
     # via -r requirements.in
