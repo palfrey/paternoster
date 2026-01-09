@@ -90,7 +90,7 @@ uwsgi==2.0.27
     # via -r requirements.in
 virtualenv==20.26.6
     # via pre-commit
-werkzeug==3.0.6
+werkzeug==3.1.5
     # via flask
 wheel==0.44.0
     # via pip-tools
