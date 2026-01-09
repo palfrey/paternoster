@@ -6,7 +6,7 @@ blinker==1.8.2
     # via flask
 build==1.2.2
     # via pip-tools
-certifi==2024.8.30
+certifi==2026.1.4
     # via requests
 cfgv==3.4.0
     # via pre-commit
