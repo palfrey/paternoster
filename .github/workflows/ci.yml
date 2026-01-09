@@ -10,7 +10,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Set up Python 3.11
       uses: actions/setup-python@v5
       with:
@@ -34,7 +34,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: Integration test
       env:
         NRW_API_KEY: ${{ secrets.NRW_API_KEY }}
