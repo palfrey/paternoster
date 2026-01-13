@@ -48,16 +48,20 @@ def nr_stations_and_lifts() -> NRStationsAndLifts:
     lifts: dict[str, LiftInfo] = {}
 
     for lift in res.json()["data"]["resultSet"]:
-        if lift["type"] != "Lift":
+        if lift.get("type") != "Lift":
             continue
         station = lift["station"]
         if station["id"] not in stations:
             stations[station["id"]] = reduce_name(station["name"])
 
-        liftinfo: LiftInfo = {"location": lift["alternateName"], "station_id": station["id"], "status": lift["status"]}
-        lift_id = lift["uprn"]
-        if lift_id is None:
-            lift_id = lift["blockId"]
+        try:
+            lift_id = lift.get("uprn", lift.get("blockId"))
+            location = lift.get("alternateName", lift.get("blockTitle"))
+            status = lift.get("status", lift.get("operationalStatus"))
+            liftinfo: LiftInfo = {"location": location, "station_id": station["id"], "status": status}
+        except KeyError:
+            print("Bad lift", lift)
+            raise
         assert lift_id is not None, lift
         lifts[lift_id] = liftinfo
 
