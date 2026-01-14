@@ -20,7 +20,7 @@ defusedxml==0.7.1
     # via -r requirements.in
 distlib==0.3.8
     # via virtualenv
-filelock==3.20.1
+filelock==3.20.3
     # via virtualenv
 flask==3.0.3
     # via
