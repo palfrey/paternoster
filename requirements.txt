@@ -79,7 +79,7 @@ pytest==9.0.2
     # via -r requirements.in
 pyyaml==6.0.2
     # via pre-commit
-requests==2.32.4
+requests==2.33.0
     # via -r requirements.in
 setuptools==82.0.0
     # via pip-tools
