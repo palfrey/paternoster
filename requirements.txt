@@ -81,7 +81,7 @@ pyyaml==6.0.2
     # via pre-commit
 requests==2.33.0
     # via -r requirements.in
-setuptools==82.0.0
+setuptools==83.0.0
     # via pip-tools
 sqlalchemy==2.0.35
     # via
