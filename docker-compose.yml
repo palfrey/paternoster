@@ -5,7 +5,7 @@ services:
     environment:
       NRW_API_KEY: ${NRW_API_KEY}
       DATABASE_URL: postgres://postgres:postgres@postgres/postgres
-    command: wait-for-it -h postgres -p 5432 -s -t 0 -- uwsgi debug-uwsgi.ini
+    # command: wait-for-it -h postgres -p 5432 -s -t 0 -- .venv/bin/uwsgi debug-uwsgi.ini
 
     ports:
     - 5000:5000
