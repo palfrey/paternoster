@@ -19,6 +19,17 @@ exclude = '''
 name = "paternoster"
 requires-python = ">=3.11"
 version = "0.1"
+dependencies = [
+  "defusedxml>=0.7.1",
+  "requests>=2.33.0",
+  "flask-migrate>=4.0.7",
+  "uwsgi>=2.0.27",
+  "psycopg2-binary>=2.9.9",
+  "typing-extensions>=4.12.2",  
+]
 
-[tool.uv]
-python-preference = "only-managed"
+[dependency-groups]
+dev = [
+  "pre-commit>=4.5.1",
+  "pytest>=9.0.3",
+]
