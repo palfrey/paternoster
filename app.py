@@ -91,6 +91,9 @@ def create_app():
         for station_id, station in stations.items():
             if station not in new_stations:
                 continue
+            existing_id_station = Station.query.filter_by(id=station_id).first()
+            if existing_id_station is not None:
+                continue
             obj = Station(id=station_id, name=station, source=kind)
             db.session.add(obj)
 
