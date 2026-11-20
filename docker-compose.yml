@@ -11,6 +11,6 @@ services:
     - 5000:5000
 
   postgres:
-    image: postgres:18
+    image: postgres:19
     environment:
       POSTGRES_PASSWORD: postgres
