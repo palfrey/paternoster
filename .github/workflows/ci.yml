@@ -14,6 +14,8 @@ jobs:
     - uses: asdf-vm/actions/install@v4
     - name: Install python dependencies
       run: |
+        # needed by uwsgi
+        sudo apt install libcrypt-dev 
         uv sync
     - name: Test app
       env:
